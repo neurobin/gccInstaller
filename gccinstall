@@ -18,14 +18,19 @@ fi
 echo "Selected Languages: $lang"
 done
 read -e -p "Number of simultaneous tasks: " -i "5" sim
+read -e -p "Install dependencies (requires network connection) (y/n)?: " -i "n" dep
+if [ "$dep" == "y" ] || [ "$dep" == "Y" ]; then
+sudo apt-get install libmpfr-dev libgmp3-dev libmpc-dev libc6-dev flex bison gcc g++
+fi
 sudo -u $USER tar xvjf $archive
 cd gcc-*
 gccname=`basename "$PWD"`
 cd ..
-mkdir $HOME/_JTMP_
-mv $gccname $HOME/_JTMP_/
+rm -rf $HOME/_JTMP_
+sudo -u $USER mkdir $HOME/_JTMP_
+sudo -u $USER mv $gccname $HOME/_JTMP_/
 cd $HOME/_JTMP_
-mkdir gcc-build
+sudo -u $USER mkdir gcc-build
 cd gcc-build
 $HOME/_JTMP_/$gccname/configure                     \
     --prefix=/usr                                    \
@@ -39,6 +44,4 @@ $HOME/_JTMP_/$gccname/configure                     \
     --enable-languages=$lang &&
 make --jobs=$sim
 sudo make install
-cd ..
-cd ..
 rm -rf $HOME/_JTMP_
