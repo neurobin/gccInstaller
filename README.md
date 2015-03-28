@@ -6,10 +6,6 @@ How To:
 
 1.Download the official source code (in tar.bz2) from http://ftp.gnu.org/gnu/gcc/ choose the latest version.
 
-2.Install dependencies if not installed pre-hand:
-
-sudo apt-get install libmpfr-dev libgmp3-dev libmpc-dev libc6-dev flex bison
-
 2.Put the "gccinstall" file into that folder where the tar.bz2 archive is.
 
 3.Give it execution permission and run it.
