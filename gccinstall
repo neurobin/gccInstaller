@@ -1,0 +1,44 @@
+#!/bin/bash
+BASEDIR=`dirname "${0}"`
+cd "$BASEDIR"
+sudo echo 
+read -e -p "Enter GCC version number: " ver
+archive=(gcc-$ver*.tar*)
+sudo echo "Found archive: $archive"
+declare -a arr=("c++" "fortran" "go" "objc" "obj-c++")
+lang="c"
+echo -e "\n***Add Compilers of your choice, default is n (not select) for every step***\n"
+for i in "${arr[@]}"
+do
+sudo echo
+read -e -p "Add $i (y/n)?: " choice
+if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then
+lang="$lang,$i"
+fi
+echo "Selected Languages: $lang"
+done
+read -e -p "Number of simultaneous tasks: " -i "5" sim
+sudo -u $USER tar xvjf $archive
+cd gcc-*
+gccname=`basename "$PWD"`
+cd ..
+mkdir $HOME/_JTMP_
+mv $gccname $HOME/_JTMP_/
+cd $HOME/_JTMP_
+mkdir gcc-build
+cd gcc-build
+$HOME/_JTMP_/$gccname/configure                     \
+    --prefix=/usr                                    \
+    --libdir=/usr/lib                                \
+    --enable-shared                                  \
+    --enable-threads=posix                           \
+    --enable-__cxa_atexit                            \
+    --enable-clocale=gnu                             \
+    --disable-multilib                               \
+    --with-system-zlib                               \
+    --enable-languages=$lang &&
+make --jobs=$sim
+sudo make install
+cd ..
+cd ..
+rm -rf $HOME/_JTMP_
