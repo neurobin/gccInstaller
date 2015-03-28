@@ -1,7 +1,7 @@
 #!/bin/bash
 BASEDIR=`dirname "${0}"`
 cd "$BASEDIR"
-sudo echo 
+sudo echo
 read -e -p "Enter GCC version number: " ver
 archive=(gcc-$ver*.tar*)
 sudo echo "Found archive: $archive"
@@ -15,24 +15,30 @@ read -e -p "Add $i (y/n)?: " choice
 if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then
 lang="$lang,$i"
 fi
-echo "Selected Languages: $lang"
+sudo echo "Selected Languages: $lang"
 done
-read -e -p "Number of simultaneous tasks: " -i "5" sim
+read -e -p "Number of simultaneous tasks?: " -i "5" sim
+if [[ $sim =~ ^[\-0-9]+$ ]] && (( sim > 0)); then
+  sim=$sim
+else
+  sim=5
+fi
 read -e -p "Install dependencies (requires network connection) (y/n)?: " -i "n" dep
 if [ "$dep" == "y" ] || [ "$dep" == "Y" ]; then
-sudo apt-get install libmpfr-dev libgmp3-dev libmpc-dev libc6-dev flex bison gcc g++
+apt-get install libmpfr-dev libgmp3-dev libmpc-dev libc6-dev flex bison gcc g++
 fi
 sudo -u $USER tar xvjf $archive
 cd gcc-*
 gccname=`basename "$PWD"`
 cd ..
-rm -rf $HOME/_JTMP_
+sudo -u $USER rm -rf $HOME/_JTMP_
 sudo -u $USER mkdir $HOME/_JTMP_
 sudo -u $USER mv $gccname $HOME/_JTMP_/
 cd $HOME/_JTMP_
 sudo -u $USER mkdir gcc-build
 cd gcc-build
-$HOME/_JTMP_/$gccname/configure                     \
+sudo -s <<EOF
+sudo -u $USER $HOME/_JTMP_/$gccname/configure        \
     --prefix=/usr                                    \
     --libdir=/usr/lib                                \
     --enable-shared                                  \
@@ -42,6 +48,7 @@ $HOME/_JTMP_/$gccname/configure                     \
     --disable-multilib                               \
     --with-system-zlib                               \
     --enable-languages=$lang &&
-make --jobs=$sim
-sudo make install
-rm -rf $HOME/_JTMP_
+sudo -u $USER make --jobs=$sim
+make install
+sudo -u $USER rm -rf $HOME/_JTMP_
+EOF
