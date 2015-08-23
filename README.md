@@ -1,6 +1,6 @@
 # GCC-INSTALLER
 
-Latest gcc and g++ compiler installer from official source code
+Latest gcc and g++ compiler installer from official source code (configured for 64 bit system for multiarch build)
 
 How To:
 -------

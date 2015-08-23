@@ -28,7 +28,7 @@ if [ "$dep" == "y" ] || [ "$dep" == "Y" ]; then
 apt-get install libmpfr-dev libgmp3-dev libmpc-dev libc6-dev flex bison gcc g++
 fi
 sudo -u $USER tar xvjf $archive
-cd gcc-*
+cd gcc-*$ver* || exit 1
 gccname=`basename "$PWD"`
 cd ..
 sudo -u $USER rm -rf $HOME/_JTMP_
@@ -42,6 +42,31 @@ sudo -u $USER $HOME/_JTMP_/$gccname/configure        \
     --prefix=/usr                                    \
     --libdir=/usr/lib                                \
     --enable-shared                                  \
+    --program-suffix=-$ver                           \
+    --enable-linker-build-id                         \
+    --libexecdir=/usr/lib                            \
+    --without-included-gettext                       \
+    --enable-threads=posix                           \
+    --libdir=/usr/lib                                \
+    --enable-nls --with-sysroot=/                    \
+    --enable-clocale=gnu                             \
+    --enable-libstdcxx-debug                         \
+    --enable-libstdcxx-time=yes                      \
+    --enable-gnu-unique-object                       \
+    --enable-plugin                                  \
+    --enable-java-awt=gtk --enable-gtk-cairo         \
+    --with-arch-directory=amd64                      \
+    --with-ecj-jar=/usr/share/java/eclipse-ecj.jar   \
+    --enable-objc-gc                                 \
+    --enable-multiarch                               \
+    --disable-werror                                 \
+    --with-arch-32=i686                              \
+    --with-abi=m64                                   \
+    --with-multilib-list=m32,m64,mx32                \
+    --with-tune=generic                              \
+    --build=x86_64-linux-gnu                         \
+    --host=x86_64-linux-gnu                          \
+    --target=x86_64-linux-gnu                        \
     --enable-threads=posix                           \
     --enable-__cxa_atexit                            \
     --enable-clocale=gnu                             \
