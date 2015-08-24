@@ -1,21 +1,24 @@
 #!/bin/bash
-BASEDIR=`dirname "${0}"`
+BASEDIR=`dirname "$BASH_SOURCE"`
 cd "$BASEDIR"
-sudo echo
+if [ $EUID -ne 0 ]; then
+    echo -e "\n*********This script must be run with root privilege*********"
+    echo -e "*******************Sorry! Exiting*************************\n"
+    exit 2
+fi
 read -e -p "Enter GCC version number: " ver
 archive=(gcc-$ver*.tar*)
-sudo echo "Found archive: $archive"
+echo "Found archive: $archive"
 declare -a arr=("c++" "fortran" "go" "objc" "obj-c++")
 lang="c"
 echo -e "\n***Add Compilers of your choice, default is n (not select) for every step***\n"
 for i in "${arr[@]}"
 do
-sudo echo
 read -e -p "Add $i (y/n)?: " choice
 if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then
 lang="$lang,$i"
 fi
-sudo echo "Selected Languages: $lang"
+echo "Selected Languages: $lang"
 done
 read -e -p "Number of simultaneous tasks?: " -i "5" sim
 if [[ $sim =~ ^[\-0-9]+$ ]] && (( sim > 0)); then
@@ -27,31 +30,22 @@ read -e -p "Install dependencies (requires network connection) (y/n)?: " -i "n" 
 if [ "$dep" == "y" ] || [ "$dep" == "Y" ]; then
 apt-get install libmpfr-dev libgmp3-dev libmpc-dev libc6-dev flex bison gcc g++
 fi
-sudo -u $USER tar xvjf $archive
-cd gcc-*$ver* || exit 1
+tmpdir="$(mktemp -d)"
+tar xvjf $archive -C "$tmpdir"
+cd $tmpdir/gcc* || exit 1
 gccname=`basename "$PWD"`
 cd ..
-sudo -u $USER rm -rf $HOME/_JTMP_
-sudo -u $USER mkdir $HOME/_JTMP_
-sudo -u $USER mv $gccname $HOME/_JTMP_/
-cd $HOME/_JTMP_
-sudo -u $USER mkdir gcc-build
+mkdir gcc-build
 cd gcc-build
-sudo -s <<EOF
-sudo -u $USER $HOME/_JTMP_/$gccname/configure        \
+../$gccname/configure                        \
     --prefix=/usr                                    \
-    --libdir=/usr/lib                                \
     --enable-shared                                  \
     --program-suffix=-$ver                           \
     --enable-linker-build-id                         \
-    --libexecdir=/usr/lib                            \
-    --without-included-gettext                       \
     --enable-threads=posix                           \
     --libdir=/usr/lib                                \
     --enable-nls --with-sysroot=/                    \
     --enable-clocale=gnu                             \
-    --enable-libstdcxx-debug                         \
-    --enable-libstdcxx-time=yes                      \
     --enable-gnu-unique-object                       \
     --enable-plugin                                  \
     --enable-java-awt=gtk --enable-gtk-cairo         \
@@ -67,13 +61,17 @@ sudo -u $USER $HOME/_JTMP_/$gccname/configure        \
     --build=x86_64-linux-gnu                         \
     --host=x86_64-linux-gnu                          \
     --target=x86_64-linux-gnu                        \
-    --enable-threads=posix                           \
     --enable-__cxa_atexit                            \
     --enable-clocale=gnu                             \
-    --disable-multilib                               \
+    --enable-multilib                               \
     --with-system-zlib                               \
     --enable-languages=$lang &&
-sudo -u $USER make --jobs=$sim
+make --jobs=$sim
 make install
-sudo -u $USER rm -rf $HOME/_JTMP_
-EOF
+rm -rf "$tmpdir"
+ln -sf /usr/bin/gcc-$ver /usr/bin/gcc
+ln -sf /usr/bin/g++-$ver /usr/bin/g++
+ln -sf /usr/bin/gcc /usr/bin/cc
+ln -sf /usr/bin/g++ /usr/bin/cpp
+ln -sf /usr/bin/g++ /usr/bin/c++
+
